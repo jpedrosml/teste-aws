@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import exceptions.AlunoExistenteException;
+
 @RestController
 @RequestMapping("/api/alunos")
 public class AlunoController {
@@ -19,6 +21,9 @@ public class AlunoController {
 	//C
     @PostMapping
     public Aluno adicionarAluno(@RequestBody Aluno aluno) {
+    	if(alunoRepository.existsById(aluno.getId())) {
+    		throw new AlunoExistenteException(aluno.getId());
+    	}
         return alunoRepository.save(aluno);
     }
 	
@@ -34,15 +39,15 @@ public class AlunoController {
     @PutMapping("/{id}")
     public ResponseEntity<Aluno> atualizarAluno(@PathVariable Long id, @RequestBody Aluno aluno) {
         return alunoRepository.findById(id)
-                .map(alunoExistente -> {
-                    alunoExistente.setNome(aluno.getNome());
-                    alunoExistente.setIdade(aluno.getIdade());
-                    alunoExistente.setNotaPrimeiroSemestre(aluno.getNotaPrimeiroSemestre());
-                    alunoExistente.setNotaSegundoSemestre(aluno.getNotaSegundoSemestre());
-                    alunoExistente.setNomeProfessor(aluno.getNomeProfessor());
-                    alunoExistente.setNumeroSala(aluno.getNumeroSala());
-                    alunoRepository.save(alunoExistente);
-                    return ResponseEntity.ok(alunoExistente);
+                .map(existingAluno -> {
+                    existingAluno.setNome(aluno.getNome());
+                    existingAluno.setIdade(aluno.getIdade());
+                    existingAluno.setNotaPrimeiroSemestre(aluno.getNotaPrimeiroSemestre());
+                    existingAluno.setNotaSegundoSemestre(aluno.getNotaSegundoSemestre());
+                    existingAluno.setNomeProfessor(aluno.getNomeProfessor());
+                    existingAluno.setNumeroSala(aluno.getNumeroSala());
+                    alunoRepository.save(existingAluno);
+                    return ResponseEntity.ok(existingAluno);
                 })
                 .orElse(ResponseEntity.notFound().build());
     }
